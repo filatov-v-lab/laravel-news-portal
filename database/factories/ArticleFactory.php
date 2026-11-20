@@ -17,13 +17,23 @@ class ArticleFactory extends Factory
 
         [$preview, $full] = fake()->randomElement($images);
 
+        // Русский текст (realText из ru_RU), а не латинский lorem ipsum.
+        $ru = fake('ru_RU');
+
+        $titles = [
+            'Открытие нового сезона', 'Итоги недели', 'Что нового в городе', 'Главное за сутки',
+            'Тест-драйв спорткара', 'Как живут тигры зимой', 'Скорость и дорога', 'Погода на выходные',
+            'Новости науки', 'Спорт: результаты дня', 'Культурная афиша', 'Интервью с экспертом',
+            'Технологии будущего', 'Путешествие по России', 'Обзор рынка', 'Здоровье и отдых',
+        ];
+
         return [
             'date' => fake()->dateTimeBetween('-2 years', 'now')->format('Y-m-d'),
-            'name' => fake()->sentence(6),
+            'name' => fake()->randomElement($titles),
             'preview_image' => $preview,
             'full_image' => $full,
-            'short_desc' => fake()->sentence(12),
-            'desc' => fake()->paragraphs(3, true),
+            'short_desc' => $ru->realText(110),
+            'desc' => $ru->realText(700),
         ];
     }
 }

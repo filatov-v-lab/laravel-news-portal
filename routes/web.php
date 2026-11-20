@@ -4,6 +4,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\MainController;
+use App\Http\Middleware\LogArticleView;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MainController::class, 'index'])->name('home');
@@ -35,7 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/comments/{comment}/reject', [CommentController::class, 'reject'])->name('comments.reject');
 });
 
-Route::get('/articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
+Route::get('/articles/{article}', [ArticleController::class, 'show'])
+    ->middleware(LogArticleView::class)
+    ->name('articles.show');
 
 Route::get('/about', function () {
     return view('about');

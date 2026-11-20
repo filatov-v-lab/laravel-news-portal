@@ -4,6 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Сайт') — Новостной портал</title>
+    {{-- Vue + Echo. Подключается, только если выполнена сборка: npm run build --}}
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite('resources/js/app.js')
+    @endif
     <style>
         :root {
             --bg: #f4f1ea;
@@ -153,6 +157,14 @@
         }
         .pagination-wrap { margin-top: 24px; }
         .pagination-wrap nav, .pagination-wrap ul { display: flex; gap: 8px; flex-wrap: wrap; list-style: none; padding: 0; }
+        .notifications { position: relative; }
+        .notifications summary { cursor: pointer; list-style: none; padding: 8px 12px; border-radius: 8px; }
+        .notifications summary::-webkit-details-marker { display: none; }
+        .notifications .badge { background: #c0392b; color: #fff; border-radius: 999px; padding: 1px 7px; font-size: .8rem; margin-left: 4px; }
+        .notifications ul { position: absolute; right: 0; top: 100%; z-index: 50; min-width: 260px; margin: 6px 0 0; padding: 8px; list-style: none; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+        .notifications li a { display: block; padding: 8px 10px; border-radius: 6px; }
+        .notifications li.empty { padding: 8px 10px; color: var(--muted); }
+        .pagination-wrap .current { background: var(--accent); color: #fff; border-color: var(--accent); }
         .pagination-wrap a, .pagination-wrap span { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); }
     </style>
 </head>
@@ -172,6 +184,26 @@
                 <a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">О нас</a>
                 <a href="{{ route('contacts') }}" class="{{ request()->routeIs('contacts') ? 'active' : '' }}">Контакты</a>
                 @auth
+                    @php($unread = auth()->user()->unreadNotifications)
+                    <details class="notifications">
+                        <summary>
+                            Уведомления
+                            @if ($unread->count() > 0)
+                                <span class="badge">{{ $unread->count() }}</span>
+                            @endif
+                        </summary>
+                        <ul>
+                            @forelse ($unread as $notification)
+                                <li>
+                                    <a href="{{ route('articles.show', ['article' => $notification->data['article_id'], 'notification' => $notification->id]) }}">
+                                        {{ $notification->data['name'] }}
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="empty">Новых уведомлений нет</li>
+                            @endforelse
+                        </ul>
+                    </details>
                     <span>{{ auth()->user()->name }}</span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -186,6 +218,9 @@
     </header>
 
     <main>
+        {{-- сюда Vue монтирует push-уведомление о новой статье --}}
+        <div id="app"></div>
+
         <div class="container">
             <div class="card">
                 @if (session('success'))

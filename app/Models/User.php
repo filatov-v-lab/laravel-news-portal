@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -28,6 +29,24 @@ class User extends Authenticatable
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * E-mail всех модераторов (+ дополнительный адрес из MAIL_MODERATOR_ADDRESS).
+     *
+     * @return Collection<int, string>
+     */
+    public static function moderatorEmails(): Collection
+    {
+        $emails = static::query()
+            ->whereHas('role', fn ($query) => $query->where('slug', Role::MODERATOR))
+            ->pluck('email');
+
+        if ($extra = config('mail.moderator_address')) {
+            $emails->push($extra);
+        }
+
+        return $emails->filter()->unique()->values();
     }
 
     public function isModerator(): bool

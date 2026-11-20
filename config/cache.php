@@ -131,6 +131,15 @@ return [
     |
     */
 
-    'serializable_classes' => false,
+    // Классы, которые можно достать из кэша (Laravel 13 по умолчанию запрещает все).
+    // Нужны для кэша списка статей (пагинатор) и страницы статьи с комментариями.
+    'serializable_classes' => [
+        App\Models\Article::class,
+        App\Models\Comment::class,
+        App\Models\User::class,
+        Illuminate\Pagination\LengthAwarePaginator::class,
+        Illuminate\Database\Eloquent\Collection::class,
+        Illuminate\Support\Collection::class,
+    ],
 
 ];
